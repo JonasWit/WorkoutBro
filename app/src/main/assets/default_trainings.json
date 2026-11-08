@@ -1,0 +1,77 @@
+{
+    "schema": 1,
+    "presets": [
+        {
+            "name": "rev plank",
+            "rounds": 5,
+            "workSeconds": 40,
+            "restSeconds": 30,
+            "prepareSeconds": 20,
+            "countdownSeconds": 3,
+            "halfWay": true,
+            "countdown": true,
+            "vibration": true,
+            "sound": true
+        },
+        {
+            "name": "side plank",
+            "rounds": 4,
+            "workSeconds": 40,
+            "restSeconds": 30,
+            "prepareSeconds": 20,
+            "countdownSeconds": 3,
+            "halfWay": true,
+            "countdown": true,
+            "vibration": true,
+            "sound": true
+        },
+        {
+            "name": "rope",
+            "rounds": 4,
+            "workSeconds": 120,
+            "restSeconds": 60,
+            "prepareSeconds": 20,
+            "countdownSeconds": 3,
+            "halfWay": true,
+            "countdown": true,
+            "vibration": true,
+            "sound": true
+        },
+        {
+            "name": "HIIT",
+            "rounds": 15,
+            "workSeconds": 30,
+            "restSeconds": 30,
+            "prepareSeconds": 20,
+            "countdownSeconds": 3,
+            "halfWay": true,
+            "countdown": true,
+            "vibration": true,
+            "sound": true
+        },
+        {
+            "name": "30x30",
+            "rounds": 10,
+            "workSeconds": 30,
+            "restSeconds": 30,
+            "prepareSeconds": 20,
+            "countdownSeconds": 3,
+            "halfWay": true,
+            "countdown": true,
+            "vibration": true,
+            "sound": true
+        },
+        {
+            "name": "rope long",
+            "rounds": 3,
+            "workSeconds": 300,
+            "restSeconds": 60,
+            "prepareSeconds": 20,
+            "countdownSeconds": 3,
+            "halfWay": true,
+            "countdown": true,
+            "vibration": true,
+            "sound": true
+        }
+    ]
+}

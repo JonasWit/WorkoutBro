@@ -12,8 +12,8 @@ indent_size = 2
 trim_trailing_whitespace = false
 
 [*.{kt,kts}]
-# The application id and package name predate this setup; renaming them would be a
-# separate change touching the manifest, the directory tree and the Play listing.
+# The application id keeps `wtk_apps` from before this setup; the underscore is why the
+# package-name rule stays off. Changing the id again is a separate change.
 ktlint_standard_package-name = disabled
 # Compose composables are PascalCase by convention.
 ktlint_function_naming_ignore_when_annotated_with = Composable

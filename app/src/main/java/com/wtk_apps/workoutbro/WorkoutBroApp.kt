@@ -1,7 +1,9 @@
 package com.wtk_apps.workoutbro
 
 import android.app.Application
+import com.wtk_apps.workoutbro.data.BundledPresets
 import com.wtk_apps.workoutbro.data.SettingsRepository
+import com.wtk_apps.workoutbro.data.settingsRepository
 import com.wtk_apps.workoutbro.timer.AndroidCuePlayer
 import com.wtk_apps.workoutbro.timer.MonotonicClock
 import com.wtk_apps.workoutbro.timer.TimerController
@@ -23,7 +25,7 @@ object AppGraph {
     private set
 
   fun init(context: Application) {
-    settings = SettingsRepository(context)
+    settings = settingsRepository(context)
     timer =
       TimerController(
         cuePlayer = AndroidCuePlayer(context),
@@ -40,6 +42,7 @@ class WorkoutBroApp : Application() {
     super.onCreate()
     AppGraph.init(this)
     scope.launch {
+      AppGraph.settings.seedDefaults(BundledPresets.read(this@WorkoutBroApp))
       val config = AppGraph.settings.config.first()
       AppGraph.timer.configure(config)
     }

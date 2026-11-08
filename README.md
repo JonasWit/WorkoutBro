@@ -59,6 +59,7 @@ keeps running with the screen off, and remembers your workouts.</p>
 
 ### Saved workouts
 
+- six ready-made workouts ship with the app: rev plank, side plank, rope, HIIT, 30x30 and rope long
 - save the current configuration as a named workout
 - up to 20 saved workouts
 - preview parameters, load, edit and delete

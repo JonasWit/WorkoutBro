@@ -5,7 +5,7 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.wtk_apps.workoutbro.BuildConfig
 import com.wtk_apps.workoutbro.R
-import com.wtk_apps.workoutbro.data.SettingsRepository
+import com.wtk_apps.workoutbro.data.settingsRepository
 import com.wtk_apps.workoutbro.timer.TimerConfig
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -37,8 +37,8 @@ class AppIdentityTest {
   @Test
   fun savedSettingsAreReadBackFromTheStore() =
     runTest {
-      SettingsRepository(context).save(TimerConfig(rounds = 5))
+      settingsRepository(context).save(TimerConfig(rounds = 5))
 
-      assertEquals(5, SettingsRepository(context).config.first().rounds)
+      assertEquals(5, settingsRepository(context).config.first().rounds)
     }
 }

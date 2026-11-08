@@ -3,6 +3,7 @@ package com.wtk_apps.workoutbro.data
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -14,6 +15,12 @@ import kotlinx.coroutines.flow.map
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "workoutbro_settings")
 
 /**
+ * The app-wide store. The only place that knows where the file lives, so tests can hand
+ * [SettingsRepository] a store of their own instead of the one the process shares.
+ */
+fun settingsRepository(context: Context): SettingsRepository = SettingsRepository(context.applicationContext.dataStore)
+
+/**
  * Persists the active [TimerConfig] and up to [MAX_PRESETS] saved trainings with
  * Preferences DataStore, so both survive an app restart.
  *
@@ -21,10 +28,8 @@ private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(na
  * and the preset list.
  */
 class SettingsRepository(
-  context: Context,
+  private val dataStore: DataStore<Preferences>,
 ) : WorkoutStore {
-  private val dataStore = context.applicationContext.dataStore
-
   /** The currently active configuration. */
   override val config: Flow<TimerConfig> = dataStore.data.map { readConfig(it, prefix = "") }
 
@@ -37,6 +42,23 @@ class SettingsRepository(
 
   override suspend fun save(config: TimerConfig) {
     dataStore.edit { ConfigPreferences.write(it, prefix = "", config = config) }
+  }
+
+  /**
+   * Installs the bundled trainings once: only when this store has never been seeded and
+   * holds no trainings yet, so an import or a hand-made training is never pushed out and
+   * deleted defaults never come back.
+   */
+  suspend fun seedDefaults(defaults: List<TrainingPreset>) {
+    dataStore.edit { preferences ->
+      if (preferences[KEY_DEFAULTS_SEEDED] == true) return@edit
+      preferences[KEY_DEFAULTS_SEEDED] = true
+      if (preferences.presetCount() > 0) return@edit
+
+      val count = defaults.size.coerceAtMost(MAX_PRESETS)
+      defaults.take(count).forEachIndexed { index, preset -> preferences.writePreset(index, preset) }
+      preferences[KEY_PRESET_COUNT] = count
+    }
   }
 
   /** Overwrites the saved training at [index]. */
@@ -109,6 +131,7 @@ class SettingsRepository(
 
   private companion object {
     val KEY_PRESET_COUNT = intPreferencesKey("preset_count")
+    val KEY_DEFAULTS_SEEDED = booleanPreferencesKey("defaults_seeded")
 
     fun nameKey(index: Int) = stringPreferencesKey("preset_${index}_name")
 
