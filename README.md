@@ -1,8 +1,8 @@
 <div align="center">
 
-<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="112" alt="WorkoutBase icon">
+<img src="app/src/main/res/mipmap-xxxhdpi/ic_launcher.png" width="112" alt="WorkoutBro icon">
 
-<h1>WorkoutBase</h1>
+<h1>WorkoutBro</h1>
 
 <p><strong>Set the rounds. Press start. Follow the cues.</strong></p>
 
@@ -10,18 +10,18 @@
 keeps running with the screen off, and remembers your workouts.</p>
 
 <p>
-  <a href="https://github.com/JonasWit/workoutbase/releases/latest"><img src="https://img.shields.io/github/v/release/JonasWit/workoutbase?style=flat-square&label=release&color=c9a227" alt="Latest release"></a>
+  <a href="https://github.com/JonasWit/WorkoutBro/releases/latest"><img src="https://img.shields.io/github/v/release/JonasWit/WorkoutBro?style=flat-square&label=release&color=c9a227" alt="Latest release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue?style=flat-square" alt="License: MIT"></a>
   <a href="#installation"><img src="https://img.shields.io/badge/Android-7.0%2B-3ddc84?style=flat-square&logo=android&logoColor=white" alt="Android 7.0+"></a>
 </p>
 
-<p><strong><a href="https://github.com/JonasWit/workoutbase/releases/latest">Download the latest APK</a></strong></p>
+<p><strong><a href="https://github.com/JonasWit/WorkoutBro/releases/latest">Download the latest APK</a></strong></p>
 
 </div>
 
 ---
 
-## Why WorkoutBase
+## Why WorkoutBro
 
 - **Read it from across the room.** The countdown is large enough to follow from
   several meters away, so you do not have to pick up the phone mid-set.
@@ -83,12 +83,17 @@ keeps running with the screen off, and remembers your workouts.</p>
 ## Installation
 
 1. Download `app-release.apk` from the
-   [Releases](https://github.com/JonasWit/workoutbase/releases/latest) tab.
+   [Releases](https://github.com/JonasWit/WorkoutBro/releases/latest) tab.
 2. Open the file on your phone. If Android asks, allow installing from this source.
 
 > **Updating from a build signed with a different key?** Android will refuse the
 > update. Open `Trainings` → `EXPORT`, uninstall the old version, install the new
 > one, then use `IMPORT` to restore your workouts.
+
+> **Coming from WorkoutBase?** The rename changed the package id, so WorkoutBro
+> installs next to the old app instead of replacing it. Open `Trainings` → `EXPORT`
+> in WorkoutBase, install WorkoutBro, then use `IMPORT` there. You can remove the
+> old app afterwards.
 
 ## Your first workout
 

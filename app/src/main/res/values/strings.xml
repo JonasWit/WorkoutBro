@@ -1,7 +1,7 @@
 <resources>
-  <string name="app_name">WorkoutBase</string>
+  <string name="app_name">WorkoutBro</string>
 
-  <string name="title_workout_base">WORKOUT BASE</string>
+  <string name="title_workout_bro">WORKOUT BRO</string>
   <string name="version_label">v%1$s</string>
   <string name="title_settings">Settings</string>
   <string name="title_trainings">Trainings</string>

@@ -1,4 +1,4 @@
-# Detekt configuration for WorkoutBase.
+# Detekt configuration for WorkoutBro.
 #
 # Deliberate deviations from the defaults:
 # - the package name contains an underscore and predates this setup, so the pattern

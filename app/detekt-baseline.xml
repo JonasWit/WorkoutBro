@@ -40,7 +40,7 @@
     <ID>MagicNumber:TimerFormat.kt$1_000L</ID>
     <ID>MagicNumber:TimerFormat.kt$60L</ID>
     <ID>MagicNumber:TimerFormat.kt$999L</ID>
-    <ID>MagicNumber:WorkoutBaseApp.kt$AppGraph$1_000_000L</ID>
+    <ID>MagicNumber:WorkoutBroApp.kt$AppGraph$1_000_000L</ID>
     <ID>MatchingDeclarationName:Duration.kt$DurationParts</ID>
     <ID>MaxLineLength:ConfigFields.kt$FormDialogButton("CANCEL", filled = false, accent = TextSecondary, modifier = Modifier.weight(1f), onClick = onDismiss)</ID>
     <ID>MaxLineLength:EditTrainingScreen.kt$colors = ButtonDefaults.buttonColors(containerColor = AccentGold, contentColor = MaterialTheme.colorScheme.onPrimary)</ID>

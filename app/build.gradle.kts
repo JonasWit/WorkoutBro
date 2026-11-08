@@ -28,14 +28,14 @@ android {
       }
     }
   }
-  namespace = "com.wtk_apps.workoutbase"
+  namespace = "com.wtk_apps.workoutbro"
   compileSdk = 36
   defaultConfig {
-    applicationId = "com.wtk_apps.workoutbase"
+    applicationId = "com.wtk_apps.workoutbro"
     minSdk = 24
     targetSdk = 36
-    versionCode = 7
-    versionName = "1.0.5"
+    versionCode = 8
+    versionName = "2.0.0"
   }
 
   buildTypes {
