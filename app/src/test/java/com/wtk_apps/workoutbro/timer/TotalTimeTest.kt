@@ -24,6 +24,20 @@ class TotalTimeTest {
   }
 
   @Test
+  fun totalWork_isTheWorkTimeOfEveryRound() {
+    // 3 rounds * 10 s of work = 30 s.
+    assertEquals(30_000L, totalWorkMillis(config()))
+  }
+
+  @Test
+  fun totalWork_ignoresRestAndPrepare() {
+    val withoutRestOrPrepare = config(rounds = 4, workMillis = 7_000L, restMillis = 0L, prepareMillis = 0L)
+    val withRestAndPrepare = config(rounds = 4, workMillis = 7_000L, restMillis = 9_000L, prepareMillis = 5_000L)
+    assertEquals(28_000L, totalWorkMillis(withoutRestOrPrepare))
+    assertEquals(28_000L, totalWorkMillis(withRestAndPrepare))
+  }
+
+  @Test
   fun idle_remainingEqualsTotalSession() {
     val state = TimerEngine.initialState(config())
     assertEquals(45_000L, totalRemainingMillis(state))

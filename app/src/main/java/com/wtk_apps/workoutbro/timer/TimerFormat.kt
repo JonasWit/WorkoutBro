@@ -62,4 +62,9 @@ fun totalRemainingMillis(state: TimerState): Long {
   }
 }
 
-/** Total duration of a full session: prepare + rounds*work + (rounds-1)*rest. */
+/**
+ * Time actually spent working in a session: every round counts in full, while
+ * prepare and rests do not. This is what the saved-trainings list shows next to
+ * the total session time.
+ */
+fun totalWorkMillis(config: TimerConfig): Long = config.rounds * config.workMillis

@@ -63,6 +63,7 @@ keeps running with the screen off, and remembers your workouts.</p>
 - save the current configuration as a named workout
 - up to 20 saved workouts
 - preview parameters, load, edit and delete
+- every saved workout shows its total session time and the time actually spent working
 - export all workouts to a JSON file and import from a file
 - import reports how many workouts were added and how many were skipped because of the limit
 

@@ -49,6 +49,7 @@ import com.wtk_apps.workoutbro.theme.TextSecondary
 import com.wtk_apps.workoutbro.theme.WorkYellow
 import com.wtk_apps.workoutbro.timer.formatMillis
 import com.wtk_apps.workoutbro.timer.totalSessionMillis
+import com.wtk_apps.workoutbro.timer.totalWorkMillis
 import com.wtk_apps.workoutbro.ui.PresetsViewModel
 
 @Composable
@@ -97,19 +98,16 @@ internal fun PresetRow(
   ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
       Text(preset.name, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.weight(1f))
-      Column(horizontalAlignment = Alignment.End) {
-        Text(
-          stringResource(R.string.label_total),
-          color = TextSecondary,
-          fontSize = 8.sp,
-          fontWeight = FontWeight.Medium,
-          letterSpacing = 1.sp,
+      Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+        TimeMetric(
+          label = stringResource(R.string.label_total),
+          value = formatMillis(totalSessionMillis(config)),
+          accent = AccentGold,
         )
-        Text(
-          formatMillis(totalSessionMillis(config)),
-          color = AccentGold,
-          fontSize = 13.sp,
-          fontWeight = FontWeight.Bold,
+        TimeMetric(
+          label = stringResource(R.string.label_total_work),
+          value = formatMillis(totalWorkMillis(config)),
+          accent = WorkYellow,
         )
       }
     }
@@ -120,6 +118,19 @@ internal fun PresetRow(
       DetailChip("REST", formatMillis(config.restMillis), RestGreen, Modifier.weight(1f))
       DetailChip("PREP", formatMillis(config.prepareMillis), PrepareBlue, Modifier.weight(1f))
     }
+  }
+}
+
+/** A right-aligned label above its value, used for the two session times. */
+@Composable
+internal fun TimeMetric(
+  label: String,
+  value: String,
+  accent: Color,
+) {
+  Column(horizontalAlignment = Alignment.End) {
+    Text(label, color = TextSecondary, fontSize = 8.sp, fontWeight = FontWeight.Medium, letterSpacing = 1.sp)
+    Text(value, color = accent, fontSize = 13.sp, fontWeight = FontWeight.Bold)
   }
 }
 

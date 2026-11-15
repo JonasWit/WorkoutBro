@@ -65,6 +65,26 @@ class TrainingsScreenTest {
   }
 
   @Test
+  fun presetRow_showsTotalTimeAndTotalWorkTime() {
+    // Default config: 5 rounds * 3 min work = 15:00 of work,
+    // plus 4 rests of 1:00 and 0:10 prepare = 19:10 total.
+    val viewModel =
+      PresetsViewModel(
+        FakeWorkoutStore(initialPresets = listOf(TrainingPreset("Rano", TimerConfig(rounds = 5)))),
+        timer,
+      )
+
+    compose.setContent {
+      TrainingsScreen(onBack = {}, onEdit = {}, viewModel = viewModel)
+    }
+
+    compose.onNodeWithText("TOTAL").assertIsDisplayed()
+    compose.onNodeWithText("19:10").assertIsDisplayed()
+    compose.onNodeWithText("TOTAL WORK").assertIsDisplayed()
+    compose.onNodeWithText("15:00").assertIsDisplayed()
+  }
+
+  @Test
   fun emptyStore_showsTheEmptyState() {
     val viewModel = PresetsViewModel(FakeWorkoutStore(), timer)
 
