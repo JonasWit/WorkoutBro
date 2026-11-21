@@ -17,6 +17,7 @@ import androidx.core.content.ContextCompat
 import com.wtk_apps.workoutbro.AppGraph
 import com.wtk_apps.workoutbro.MainActivity
 import com.wtk_apps.workoutbro.R
+import com.wtk_apps.workoutbro.timer.TimerPhase
 import com.wtk_apps.workoutbro.timer.TimerState
 import com.wtk_apps.workoutbro.timer.formatMillis
 import com.wtk_apps.workoutbro.ui.labelRes
@@ -25,7 +26,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 /**
@@ -49,17 +49,34 @@ class TimerService : Service() {
     flags: Int,
     startId: Int,
   ): Int {
-    val notification = buildNotification(AppGraph.timer.state.value)
+    val initialState = AppGraph.timer.state.value
+    val initialSnapshot = snapshotOf(initialState)
+    val notification = buildNotification(initialSnapshot)
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
       startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK)
     } else {
       startForeground(NOTIFICATION_ID, notification)
     }
+    if (!initialState.running) {
+      stopSelf()
+      return START_NOT_STICKY
+    }
     acquireWakeLock()
     if (collectJob == null) {
+      var lastPosted = initialSnapshot
       collectJob =
         scope.launch {
-          AppGraph.timer.state.collectLatest { updateNotification(it) }
+          AppGraph.timer.state.collect { state ->
+            if (!state.running) {
+              stopSelf()
+              return@collect
+            }
+            val next = snapshotOf(state)
+            if (next != lastPosted) {
+              lastPosted = next
+              updateNotification(next)
+            }
+          }
         }
     }
     return START_NOT_STICKY
@@ -72,15 +89,19 @@ class TimerService : Service() {
     super.onDestroy()
   }
 
-  private fun updateNotification(state: TimerState) {
+  private fun updateNotification(snapshot: NotificationSnapshot) {
     val manager = getSystemService(NotificationManager::class.java) ?: return
-    manager.notify(NOTIFICATION_ID, buildNotification(state))
+    manager.notify(NOTIFICATION_ID, buildNotification(snapshot))
   }
 
-  private fun buildNotification(state: TimerState): Notification {
-    val round = if (state.round > 0) "  •  Round ${state.round}/${state.config.rounds}" else ""
-    val text = "${getString(state.phase.labelRes())}$round"
-    val title = formatMillis(state.remainingMillis)
+  private fun buildNotification(snapshot: NotificationSnapshot): Notification {
+    val roundSuffix =
+      if (snapshot.round > 0) {
+        "  •  ${getString(R.string.notification_round, snapshot.round, snapshot.rounds)}"
+      } else {
+        ""
+      }
+    val text = "${getString(snapshot.phase.labelRes())}$roundSuffix"
 
     val contentIntent =
       PendingIntent.getActivity(
@@ -93,7 +114,7 @@ class TimerService : Service() {
     return NotificationCompat
       .Builder(this, CHANNEL_ID)
       .setSmallIcon(R.drawable.ic_stat_timer)
-      .setContentTitle(title)
+      .setContentTitle(snapshot.title)
       .setContentText(text)
       .setOngoing(true)
       .setOnlyAlertOnce(true)
@@ -101,6 +122,14 @@ class TimerService : Service() {
       .setContentIntent(contentIntent)
       .build()
   }
+
+  private fun snapshotOf(state: TimerState): NotificationSnapshot =
+    NotificationSnapshot(
+      title = formatMillis(state.remainingMillis),
+      phase = state.phase,
+      round = state.round,
+      rounds = state.config.rounds,
+    )
 
   @RequiresApi(Build.VERSION_CODES.O)
   private fun createChannel() {
@@ -124,8 +153,7 @@ class TimerService : Service() {
     wakeLock =
       powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "WorkoutBro::Timer").apply {
         setReferenceCounted(false)
-        @Suppress("WakelockTimeout")
-        acquire()
+        acquire(WAKE_LOCK_TIMEOUT_MILLIS)
       }
   }
 
@@ -134,9 +162,17 @@ class TimerService : Service() {
     wakeLock = null
   }
 
+  private data class NotificationSnapshot(
+    val title: String,
+    val phase: TimerPhase,
+    val round: Int,
+    val rounds: Int,
+  )
+
   companion object {
     private const val CHANNEL_ID = "workoutbro_timer"
     private const val NOTIFICATION_ID = 1001
+    private const val WAKE_LOCK_TIMEOUT_MILLIS = 4L * 60L * 60L * 1_000L
 
     fun start(context: Context) {
       ContextCompat.startForegroundService(context, Intent(context, TimerService::class.java))
