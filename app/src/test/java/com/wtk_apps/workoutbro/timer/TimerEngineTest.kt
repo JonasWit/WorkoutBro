@@ -94,7 +94,6 @@ class TimerEngineTest {
     val transition = TimerEngine.tick(started, 10_000L)
     assertEquals(TimerPhase.FINISHED, transition.state.phase)
     assertFalse(transition.state.running)
-    assertTrue(transition.cues.contains(TimerCue.WORK_END))
     assertTrue(transition.cues.contains(TimerCue.FINISHED))
   }
 
@@ -208,5 +207,43 @@ class TimerEngineTest {
     val inRest = TimerEngine.tick(started, 10_000L).state
     val atHalf = TimerEngine.tick(inRest, 3_000L)
     assertFalse(atHalf.cues.contains(TimerCue.HALF_WAY))
+  }
+
+  @Test
+  fun tick_crossingPhaseBoundaryWithOverflow_subtractsOverflowOnlyOnce() {
+    val cfg = config(prepareMillis = 1_000L, workMillis = 10_000L)
+    val started = TimerEngine.start(TimerEngine.initialState(cfg)).state
+    val transition = TimerEngine.tick(started, 1_300L)
+
+    assertEquals(TimerPhase.WORK, transition.state.phase)
+    assertEquals(1, transition.state.round)
+    assertEquals(9_700L, transition.state.remainingMillis)
+    assertTrue(transition.cues.contains(TimerCue.WORK_START))
+  }
+
+  @Test
+  fun tick_spanningMultiplePhases_landsInCorrectPhaseWithExactRemainingTime() {
+    val cfg = config(rounds = 2, prepareMillis = 1_000L, workMillis = 5_000L, restMillis = 3_000L)
+    val started = TimerEngine.start(TimerEngine.initialState(cfg)).state
+
+    // 1s prepare + 5s work + 1s into rest = 7s elapsed -> REST round 1 with 2s left.
+    val transition = TimerEngine.tick(started, 7_000L)
+
+    assertEquals(TimerPhase.REST, transition.state.phase)
+    assertEquals(1, transition.state.round)
+    assertEquals(2_000L, transition.state.remainingMillis)
+    assertTrue(transition.cues.contains(TimerCue.WORK_START))
+    assertTrue(transition.cues.contains(TimerCue.HALF_WAY))
+    assertTrue(transition.cues.contains(TimerCue.WORK_END))
+  }
+
+  @Test
+  fun lastWorkRound_emitsFinishedWithoutOverlappingWorkEnd() {
+    val started = TimerEngine.start(TimerEngine.initialState(config(rounds = 1))).state
+    val transition = TimerEngine.tick(started, 10_000L)
+
+    assertEquals(TimerPhase.FINISHED, transition.state.phase)
+    assertTrue(transition.cues.contains(TimerCue.FINISHED))
+    assertFalse(transition.cues.contains(TimerCue.WORK_END))
   }
 }

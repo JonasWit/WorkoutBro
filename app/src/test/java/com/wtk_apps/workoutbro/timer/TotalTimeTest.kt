@@ -108,6 +108,21 @@ class TotalTimeTest {
   }
 
   @Test
+  fun remaining_decreasesExactlyByNonDivisibleTick() {
+    val cfg = config(rounds = 3, workMillis = 5_000L, restMillis = 4_000L, prepareMillis = 3_000L)
+    var state = TimerEngine.start(TimerEngine.initialState(cfg)).state
+    while (state.phase != TimerPhase.FINISHED) {
+      val before = totalRemainingMillis(state)
+      state = TimerEngine.tick(state, 300L).state
+      val after = totalRemainingMillis(state)
+      if (state.phase != TimerPhase.FINISHED) {
+        assertEquals("remaining should drop by the exact tick across boundaries", before - 300L, after)
+      }
+    }
+    assertEquals(0L, totalRemainingMillis(state))
+  }
+
+  @Test
   fun sessionSegments_listsPrepareThenWorkAndRestPerRound() {
     val cfg = config(rounds = 3, workMillis = 10_000L, restMillis = 5_000L, prepareMillis = 5_000L)
     val segments = sessionSegments(cfg)

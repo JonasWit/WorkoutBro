@@ -124,7 +124,7 @@ object TimerEngine {
     if (state.phase == TimerPhase.IDLE || state.phase == TimerPhase.FINISHED) {
       TimerTransition(state)
     } else {
-      advance(state, overflowMillis = 0L)
+      advance(state)
     }
 
   /** Adds [deltaMillis] to the current phase, clamped to [minMillis]. */
@@ -168,7 +168,7 @@ object TimerEngine {
       } else {
         cues += cuesBetween(current, before, 0L)
         val overflow = remainingDelta - before
-        val advanced = advance(current, overflow)
+        val advanced = advance(current)
         cues += advanced.cues
         current = advanced.state
         remainingDelta = overflow
@@ -191,20 +191,19 @@ object TimerEngine {
         listOf(TimerCue.PREPARE_START),
       )
     } else {
-      beginWork(TimerState(config = config), round = 1, overflowMillis = 0L)
+      beginWork(TimerState(config = config), round = 1)
     }
 
   private fun beginWork(
     state: TimerState,
     round: Int,
-    overflowMillis: Long,
   ): TimerTransition =
     TimerTransition(
       state.copy(
         phase = TimerPhase.WORK,
         round = round,
         phaseMillis = state.config.workMillis,
-        remainingMillis = state.config.workMillis - overflowMillis,
+        remainingMillis = state.config.workMillis,
         running = true,
       ),
       listOf(TimerCue.WORK_START),
@@ -213,40 +212,35 @@ object TimerEngine {
   private fun beginRest(
     state: TimerState,
     round: Int,
-    overflowMillis: Long,
   ): TimerTransition =
     TimerTransition(
       state.copy(
         phase = TimerPhase.REST,
         round = round,
         phaseMillis = state.config.restMillis,
-        remainingMillis = state.config.restMillis - overflowMillis,
+        remainingMillis = state.config.restMillis,
         running = true,
       ),
     )
 
-  private fun advance(
-    state: TimerState,
-    overflowMillis: Long,
-  ): TimerTransition =
+  private fun advance(state: TimerState): TimerTransition =
     when (state.phase) {
-      TimerPhase.PREPARE -> beginWork(state, round = 1, overflowMillis = overflowMillis)
+      TimerPhase.PREPARE -> beginWork(state, round = 1)
       TimerPhase.WORK -> {
-        val endCues = listOf(TimerCue.WORK_END)
         if (state.round >= state.config.rounds) {
           TimerTransition(
             state.copy(phase = TimerPhase.FINISHED, remainingMillis = 0L, phaseMillis = 0L, running = false),
-            endCues + TimerCue.FINISHED,
+            listOf(TimerCue.FINISHED),
           )
         } else if (state.config.restMillis > 0L) {
-          val rest = beginRest(state, state.round, overflowMillis)
-          TimerTransition(rest.state, endCues + rest.cues)
+          val rest = beginRest(state, state.round)
+          TimerTransition(rest.state, listOf(TimerCue.WORK_END) + rest.cues)
         } else {
-          val work = beginWork(state, state.round + 1, overflowMillis)
-          TimerTransition(work.state, endCues + work.cues)
+          val work = beginWork(state, state.round + 1)
+          TimerTransition(work.state, listOf(TimerCue.WORK_END) + work.cues)
         }
       }
-      TimerPhase.REST -> beginWork(state, round = state.round + 1, overflowMillis = overflowMillis)
+      TimerPhase.REST -> beginWork(state, round = state.round + 1)
       TimerPhase.IDLE, TimerPhase.FINISHED -> TimerTransition(state)
     }
 
