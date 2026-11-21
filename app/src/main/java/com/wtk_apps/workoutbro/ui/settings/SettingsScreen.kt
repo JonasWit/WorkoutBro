@@ -70,7 +70,11 @@ fun SettingsScreen(
     Button(
       onClick = { viewModel.save(config) { onBack() } },
       modifier = Modifier.fillMaxWidth().height(52.dp),
-      colors = ButtonDefaults.buttonColors(containerColor = AccentGold, contentColor = MaterialTheme.colorScheme.onPrimary),
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = AccentGold,
+          contentColor = MaterialTheme.colorScheme.onPrimary,
+        ),
     ) {
       Text(stringResource(R.string.action_save_upper), fontWeight = FontWeight.Bold, letterSpacing = 2.sp)
     }

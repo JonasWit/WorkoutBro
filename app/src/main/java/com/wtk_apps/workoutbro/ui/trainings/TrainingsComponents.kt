@@ -101,7 +101,13 @@ internal fun PresetRow(
         .padding(horizontal = 14.dp, vertical = 14.dp),
   ) {
     Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-      Text(preset.name, color = TextPrimary, fontWeight = FontWeight.SemiBold, fontSize = 16.sp, modifier = Modifier.weight(1f))
+      Text(
+        preset.name,
+        color = TextPrimary,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
+        modifier = Modifier.weight(1f),
+      )
       Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
         TimeMetric(
           label = stringResource(R.string.label_total),

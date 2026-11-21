@@ -40,6 +40,11 @@ class SettingsViewModel(
   }
 
   companion object {
-    fun factory(): ViewModelProvider.Factory = viewModelFactory { initializer { SettingsViewModel(AppGraph.settings, AppGraph.timer) } }
+    fun factory(): ViewModelProvider.Factory =
+      viewModelFactory {
+        initializer {
+          SettingsViewModel(AppGraph.settings, AppGraph.timer)
+        }
+      }
   }
 }

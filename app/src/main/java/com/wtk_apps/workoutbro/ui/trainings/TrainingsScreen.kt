@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.wtk_apps.workoutbro.R
 import com.wtk_apps.workoutbro.data.MAX_PRESETS
+import com.wtk_apps.workoutbro.data.TrainingPreset
 import com.wtk_apps.workoutbro.theme.AccentGold
 import com.wtk_apps.workoutbro.theme.TextPrimary
 import com.wtk_apps.workoutbro.theme.TextSecondary
@@ -58,6 +59,107 @@ fun TrainingsScreen(
   var actionsFor by remember { mutableStateOf<Int?>(null) }
   var pendingDelete by remember { mutableStateOf<Int?>(null) }
 
+  TrainingsContent(
+    presets = presets,
+    limitReached = limitReached,
+    viewModel = viewModel,
+    actions =
+      TrainingsActions(
+        onBack = onBack,
+        onSaveCurrent = {
+          nameInput = defaultWorkoutName
+          showSaveDialog = true
+        },
+        onSelectPreset = { actionsFor = it },
+      ),
+    modifier = modifier,
+  )
+
+  if (showSaveDialog) {
+    SaveTrainingDialog(
+      nameInput = nameInput,
+      onNameChange = { nameInput = it },
+      onDismiss = { showSaveDialog = false },
+      onConfirm = {
+        viewModel.saveCurrent(nameInput.trim().ifBlank { defaultWorkoutName }) { limitReached = !it }
+        showSaveDialog = false
+      },
+    )
+  }
+
+  PresetActionDialogs(
+    presets = presets,
+    actionsFor = actionsFor,
+    pendingDelete = pendingDelete,
+    onDismissActions = { actionsFor = null },
+    onLoad = {
+      viewModel.apply(it)
+      onBack()
+      actionsFor = null
+    },
+    onEdit = {
+      actionsFor = null
+      onEdit(it)
+    },
+    onRequestDelete = {
+      actionsFor = null
+      pendingDelete = it
+    },
+    onDismissDelete = { pendingDelete = null },
+    onConfirmDelete = {
+      pendingDelete = null
+      viewModel.delete(it)
+    },
+  )
+}
+
+@Suppress("LongParameterList")
+@Composable
+private fun PresetActionDialogs(
+  presets: List<TrainingPreset>,
+  actionsFor: Int?,
+  pendingDelete: Int?,
+  onDismissActions: () -> Unit,
+  onLoad: (TrainingPreset) -> Unit,
+  onEdit: (Int) -> Unit,
+  onRequestDelete: (Int) -> Unit,
+  onDismissDelete: () -> Unit,
+  onConfirmDelete: (Int) -> Unit,
+) {
+  actionsFor?.let { actionIndex ->
+    val preset = presets.getOrNull(actionIndex)
+    TrainingActionsDialog(
+      title = preset?.name ?: stringResource(R.string.default_training_title),
+      onLoad = { preset?.let(onLoad) ?: onDismissActions() },
+      onEdit = { onEdit(actionIndex) },
+      onDelete = { onRequestDelete(actionIndex) },
+      onDismiss = onDismissActions,
+    )
+  }
+
+  pendingDelete?.let { deleteIndex ->
+    DeleteTrainingDialog(
+      presetName = presets.getOrNull(deleteIndex)?.name ?: "",
+      onDismiss = onDismissDelete,
+      onConfirm = { onConfirmDelete(deleteIndex) },
+    )
+  }
+}
+
+private data class TrainingsActions(
+  val onBack: () -> Unit,
+  val onSaveCurrent: () -> Unit,
+  val onSelectPreset: (Int) -> Unit,
+)
+
+@Composable
+private fun TrainingsContent(
+  presets: List<TrainingPreset>,
+  limitReached: Boolean,
+  viewModel: PresetsViewModel,
+  actions: TrainingsActions,
+  modifier: Modifier = Modifier,
+) {
   Column(
     modifier =
       modifier
@@ -74,7 +176,7 @@ fun TrainingsScreen(
         letterSpacing = 1.sp,
       )
       Spacer(Modifier.weight(1f))
-      TextButton(onClick = onBack) { Text(stringResource(R.string.action_back), color = TextSecondary) }
+      TextButton(onClick = actions.onBack) { Text(stringResource(R.string.action_back), color = TextSecondary) }
     }
 
     Spacer(Modifier.height(8.dp))
@@ -88,13 +190,14 @@ fun TrainingsScreen(
 
     Spacer(Modifier.height(16.dp))
     Button(
-      onClick = {
-        nameInput = defaultWorkoutName
-        showSaveDialog = true
-      },
+      onClick = actions.onSaveCurrent,
       enabled = presets.size < MAX_PRESETS,
       modifier = Modifier.fillMaxWidth().height(52.dp),
-      colors = ButtonDefaults.buttonColors(containerColor = AccentGold, contentColor = MaterialTheme.colorScheme.onPrimary),
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = AccentGold,
+          contentColor = MaterialTheme.colorScheme.onPrimary,
+        ),
     ) {
       Text(stringResource(R.string.action_save_current_workout), fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
     }
@@ -112,149 +215,147 @@ fun TrainingsScreen(
       Text(stringResource(R.string.label_no_trainings), color = TextSecondary)
     }
     presets.forEachIndexed { index, preset ->
-      PresetRow(preset = preset, onClick = { actionsFor = index })
+      PresetRow(preset = preset, onClick = { actions.onSelectPreset(index) })
       Spacer(Modifier.height(10.dp))
     }
   }
+}
 
-  if (showSaveDialog) {
-    AlertDialog(
-      onDismissRequest = { showSaveDialog = false },
-      title = { Text(stringResource(R.string.dialog_save_training)) },
-      text = {
-        OutlinedTextField(
-          value = nameInput,
-          onValueChange = { nameInput = it },
-          singleLine = true,
-          label = { Text(stringResource(R.string.label_name)) },
-        )
-      },
-      confirmButton = {
-        TextButton(onClick = {
-          val name = nameInput.trim().ifBlank { defaultWorkoutName }
-          viewModel.saveCurrent(name) { added -> limitReached = !added }
-          showSaveDialog = false
-        }) {
-          Text(stringResource(R.string.action_save))
-        }
-      },
-      dismissButton = {
-        TextButton(onClick = { showSaveDialog = false }) {
-          Text(stringResource(R.string.action_cancel))
-        }
-      },
-    )
-  }
+@Composable
+private fun SaveTrainingDialog(
+  nameInput: String,
+  onNameChange: (String) -> Unit,
+  onDismiss: () -> Unit,
+  onConfirm: () -> Unit,
+) {
+  AlertDialog(
+    onDismissRequest = onDismiss,
+    title = { Text(stringResource(R.string.dialog_save_training)) },
+    text = {
+      OutlinedTextField(
+        value = nameInput,
+        onValueChange = onNameChange,
+        singleLine = true,
+        label = { Text(stringResource(R.string.label_name)) },
+      )
+    },
+    confirmButton = {
+      TextButton(onClick = onConfirm) {
+        Text(stringResource(R.string.action_save))
+      }
+    },
+    dismissButton = {
+      TextButton(onClick = onDismiss) {
+        Text(stringResource(R.string.action_cancel))
+      }
+    },
+  )
+}
 
-  val actionIndex = actionsFor
-  if (actionIndex != null) {
-    val preset = presets.getOrNull(actionIndex)
-    Dialog(onDismissRequest = { actionsFor = null }) {
-      Surface(
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+@Composable
+private fun TrainingActionsDialog(
+  title: String,
+  onLoad: () -> Unit,
+  onEdit: () -> Unit,
+  onDelete: () -> Unit,
+  onDismiss: () -> Unit,
+) {
+  Dialog(onDismissRequest = onDismiss) {
+    Surface(
+      shape = RoundedCornerShape(24.dp),
+      color = MaterialTheme.colorScheme.surface,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+    ) {
+      Column(
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 22.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
       ) {
-        Column(
-          modifier = Modifier.padding(horizontal = 20.dp, vertical = 22.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-          Text(
-            text = preset?.name ?: stringResource(R.string.default_training_title),
-            color = TextPrimary,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
-          )
-          Spacer(Modifier.height(18.dp))
-          DialogAction(
-            label = stringResource(R.string.action_load),
-            filled = true,
-            accent = AccentGold,
-            modifier = Modifier.fillMaxWidth(),
-          ) {
-            preset?.let {
-              viewModel.apply(it)
-              onBack()
-            }
-            actionsFor = null
-          }
-          Spacer(Modifier.height(10.dp))
-          DialogAction(
-            label = stringResource(R.string.action_edit),
-            filled = false,
-            accent = AccentGold,
-            modifier = Modifier.fillMaxWidth(),
-          ) {
-            actionsFor = null
-            onEdit(actionIndex)
-          }
-          Spacer(Modifier.height(10.dp))
-          DialogAction(
-            label = stringResource(R.string.action_delete),
-            filled = false,
-            accent = WorkRedOrange,
-            modifier = Modifier.fillMaxWidth(),
-          ) {
-            actionsFor = null
-            pendingDelete = actionIndex
-          }
-          Spacer(Modifier.height(4.dp))
-          TextButton(onClick = { actionsFor = null }) {
-            Text(stringResource(R.string.action_cancel), color = TextSecondary)
-          }
+        Text(
+          text = title,
+          color = TextPrimary,
+          fontSize = 20.sp,
+          fontWeight = FontWeight.Bold,
+          textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(18.dp))
+        DialogAction(
+          label = stringResource(R.string.action_load),
+          filled = true,
+          accent = AccentGold,
+          modifier = Modifier.fillMaxWidth(),
+          onClick = onLoad,
+        )
+        Spacer(Modifier.height(10.dp))
+        DialogAction(
+          label = stringResource(R.string.action_edit),
+          filled = false,
+          accent = AccentGold,
+          modifier = Modifier.fillMaxWidth(),
+          onClick = onEdit,
+        )
+        Spacer(Modifier.height(10.dp))
+        DialogAction(
+          label = stringResource(R.string.action_delete),
+          filled = false,
+          accent = WorkRedOrange,
+          modifier = Modifier.fillMaxWidth(),
+          onClick = onDelete,
+        )
+        Spacer(Modifier.height(4.dp))
+        TextButton(onClick = onDismiss) {
+          Text(stringResource(R.string.action_cancel), color = TextSecondary)
         }
       }
     }
   }
+}
 
-  val deleteIndex = pendingDelete
-  if (deleteIndex != null) {
-    val preset = presets.getOrNull(deleteIndex)
-    Dialog(onDismissRequest = { pendingDelete = null }) {
-      Surface(
-        shape = RoundedCornerShape(24.dp),
-        color = MaterialTheme.colorScheme.surface,
-        modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+@Composable
+private fun DeleteTrainingDialog(
+  presetName: String,
+  onDismiss: () -> Unit,
+  onConfirm: () -> Unit,
+) {
+  Dialog(onDismissRequest = onDismiss) {
+    Surface(
+      shape = RoundedCornerShape(24.dp),
+      color = MaterialTheme.colorScheme.surface,
+      modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp),
+    ) {
+      Column(
+        modifier = Modifier.padding(horizontal = 20.dp, vertical = 22.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
       ) {
-        Column(
-          modifier = Modifier.padding(horizontal = 20.dp, vertical = 22.dp),
-          horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-          Text(
-            text = stringResource(R.string.dialog_delete_training),
-            color = TextPrimary,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center,
+        Text(
+          text = stringResource(R.string.dialog_delete_training),
+          color = TextPrimary,
+          fontSize = 18.sp,
+          fontWeight = FontWeight.Bold,
+          textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(6.dp))
+        Text(
+          text = presetName,
+          color = TextSecondary,
+          fontSize = 14.sp,
+          textAlign = TextAlign.Center,
+        )
+        Spacer(Modifier.height(18.dp))
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+          DialogAction(
+            label = stringResource(R.string.action_no),
+            filled = false,
+            accent = TextSecondary,
+            modifier = Modifier.weight(1f),
+            onClick = onDismiss,
           )
-          Spacer(Modifier.height(6.dp))
-          Text(
-            text = preset?.name ?: "",
-            color = TextSecondary,
-            fontSize = 14.sp,
-            textAlign = TextAlign.Center,
+          DialogAction(
+            label = stringResource(R.string.action_yes),
+            filled = true,
+            accent = WorkRedOrange,
+            modifier = Modifier.weight(1f),
+            onClick = onConfirm,
           )
-          Spacer(Modifier.height(18.dp))
-          Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            DialogAction(
-              label = stringResource(R.string.action_no),
-              filled = false,
-              accent = TextSecondary,
-              modifier = Modifier.weight(1f),
-            ) {
-              pendingDelete = null
-            }
-            DialogAction(
-              label = stringResource(R.string.action_yes),
-              filled = true,
-              accent = WorkRedOrange,
-              modifier = Modifier.weight(1f),
-            ) {
-              pendingDelete = null
-              viewModel.delete(deleteIndex)
-            }
-          }
         }
       }
     }

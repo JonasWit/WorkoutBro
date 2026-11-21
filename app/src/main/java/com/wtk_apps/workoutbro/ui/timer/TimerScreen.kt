@@ -34,6 +34,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.clipPath
 import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
@@ -52,6 +53,7 @@ import com.wtk_apps.workoutbro.theme.PrepareBlue
 import com.wtk_apps.workoutbro.theme.RestGreen
 import com.wtk_apps.workoutbro.theme.TextPrimary
 import com.wtk_apps.workoutbro.theme.WorkYellow
+import com.wtk_apps.workoutbro.timer.SessionSegment
 import com.wtk_apps.workoutbro.timer.TimerConfig
 import com.wtk_apps.workoutbro.timer.TimerPhase
 import com.wtk_apps.workoutbro.timer.sessionSegments
@@ -169,58 +171,81 @@ internal fun SessionProgressBar(
     bar.addRoundRect(RoundRect(0f, 0f, w, h, CornerRadius(radius, radius)))
     val playX = w * fill
 
-    clipPath(bar) {
-      var x = 0f
-      segments.forEachIndexed { i, seg ->
-        val sw = w * (seg.millis.toFloat() / total)
-        val c = segmentColor(seg.phase)
-        // Dim track for the whole section.
-        drawRect(c.copy(alpha = 0.22f), topLeft = Offset(x, 0f), size = Size(sw, h))
-        // Elapsed part: flickering, glossy colour like the flames.
-        val filled = (minOf(x + sw, playX) - x).coerceAtLeast(0f)
-        if (filled > 0f) {
-          val flick = 0.5f + 0.5f * kotlin.math.sin(shimmer.floatValue * 6.2831855f * (1f + (i % 3)) + i * 1.7f)
-          val bright = lerp(c, Color.White, 0.10f + 0.28f * flick)
-          drawRect(
-            brush = Brush.verticalGradient(listOf(lerp(bright, Color.White, 0.20f), bright, c), startY = 0f, endY = h),
-            topLeft = Offset(x, 0f),
-            size = Size(filled, h),
-          )
-        }
-        x += sw
-      }
-    }
+    drawSessionSegments(bar, segments, total, playX, shimmer.floatValue)
+    drawSessionDividers(segments, total)
+    drawShimmerOverlay(bar, shimmer.floatValue)
 
-    // Dividers between sections.
-    var dividerX = 0f
-    for (i in 0 until segments.size - 1) {
-      dividerX += w * (segments[i].millis.toFloat() / total)
-      drawRect(Ink, topLeft = Offset(dividerX - 1.5.dp.toPx(), 0f), size = Size(3.dp.toPx(), h))
-    }
-
-    // Moving shimmer highlight (like the flames).
-    val bandHalf = w * 0.20f
-    val bandCenter = (shimmer.floatValue * 1.6f - 0.3f) * w
-    clipPath(bar) {
-      drawRect(
-        brush =
-          Brush.horizontalGradient(
-            colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.30f), Color.Transparent),
-            startX = bandCenter - bandHalf,
-            endX = bandCenter + bandHalf,
-          ),
-        topLeft = Offset(0f, 0f),
-        size = Size(w, h),
-      )
-    }
-
-    // Animated playhead.
     drawLine(
       color = TextPrimary,
       start = Offset(playX, -2.dp.toPx()),
       end = Offset(playX, h + 2.dp.toPx()),
       strokeWidth = 3.dp.toPx(),
       cap = StrokeCap.Round,
+    )
+  }
+}
+
+@Suppress("MagicNumber")
+private fun DrawScope.drawSessionSegments(
+  bar: Path,
+  segments: List<SessionSegment>,
+  total: Long,
+  playX: Float,
+  shimmer: Float,
+) {
+  val w = size.width
+  val h = size.height
+  clipPath(bar) {
+    var x = 0f
+    segments.forEachIndexed { i, seg ->
+      val sw = w * (seg.millis.toFloat() / total)
+      val c = segmentColor(seg.phase)
+      drawRect(c.copy(alpha = 0.22f), topLeft = Offset(x, 0f), size = Size(sw, h))
+      val filled = (minOf(x + sw, playX) - x).coerceAtLeast(0f)
+      if (filled > 0f) {
+        val flick = 0.5f + 0.5f * kotlin.math.sin(shimmer * 6.2831855f * (1f + (i % 3)) + i * 1.7f)
+        val bright = lerp(c, Color.White, 0.10f + 0.28f * flick)
+        drawRect(
+          brush = Brush.verticalGradient(listOf(lerp(bright, Color.White, 0.20f), bright, c), startY = 0f, endY = h),
+          topLeft = Offset(x, 0f),
+          size = Size(filled, h),
+        )
+      }
+      x += sw
+    }
+  }
+}
+
+@Suppress("MagicNumber")
+private fun DrawScope.drawSessionDividers(
+  segments: List<SessionSegment>,
+  total: Long,
+) {
+  var dividerX = 0f
+  for (i in 0 until segments.size - 1) {
+    dividerX += size.width * (segments[i].millis.toFloat() / total)
+    drawRect(Ink, topLeft = Offset(dividerX - 1.5.dp.toPx(), 0f), size = Size(3.dp.toPx(), size.height))
+  }
+}
+
+@Suppress("MagicNumber")
+private fun DrawScope.drawShimmerOverlay(
+  bar: Path,
+  shimmer: Float,
+) {
+  val w = size.width
+  val bandHalf = w * 0.20f
+  val bandCenter = (shimmer * 1.6f - 0.3f) * w
+  clipPath(bar) {
+    drawRect(
+      brush =
+        Brush.horizontalGradient(
+          colors = listOf(Color.Transparent, Color.White.copy(alpha = 0.30f), Color.Transparent),
+          startX = bandCenter - bandHalf,
+          endX = bandCenter + bandHalf,
+        ),
+      topLeft = Offset(0f, 0f),
+      size = size,
     )
   }
 }

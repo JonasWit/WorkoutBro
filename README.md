@@ -45,7 +45,6 @@ keeps running with the screen off, and remembers your workouts.</p>
 - 3-2-1 countdown before each round, can be turned off
 - half-way cue during the work round, can be turned off
 - start, pause, resume, reset and skip phase
-- quick 15-second extension and shortening of the current phase
 
 ### During a workout
 
@@ -77,7 +76,7 @@ keeps running with the screen off, and remembers your workouts.</p>
 
 | Screen | What you do there |
 | --- | --- |
-| **Timer** | Start, pause, resume, reset or skip a phase, adjust the current phase by 15 seconds, and follow the round and session progress. |
+| **Timer** | Start, pause, resume, reset or skip a phase, and follow the round and session progress. |
 | **Settings** | Set the rounds and the prepare, work and rest durations, choose the countdown and half-way cues, and toggle sound and vibration. |
 | **Trainings** | Preview, load, edit or delete saved workouts, and export or import the JSON backup. |
 | **Edit training** | Rename a saved workout and change its parameters. |

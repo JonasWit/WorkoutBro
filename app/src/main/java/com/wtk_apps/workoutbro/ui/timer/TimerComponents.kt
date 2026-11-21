@@ -154,7 +154,11 @@ internal fun Controls(
       onClick = actions.onToggle,
       modifier = Modifier.weight(1f).height(56.dp),
       contentPadding = PaddingValues(horizontal = 8.dp),
-      colors = ButtonDefaults.buttonColors(containerColor = AccentGold, contentColor = MaterialTheme.colorScheme.onPrimary),
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = AccentGold,
+          contentColor = MaterialTheme.colorScheme.onPrimary,
+        ),
     ) {
       Text(
         primaryLabel,

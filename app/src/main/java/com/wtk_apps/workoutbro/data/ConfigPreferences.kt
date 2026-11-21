@@ -22,44 +22,31 @@ object ConfigPreferences {
 
   fun keyWorkSeconds(prefix: String) = intPreferencesKey("${prefix}work_seconds")
 
-  fun keyRestSeconds(prefix: String) = intPreferencesKey("${prefix}rest_seconds")
-
-  fun keyPrepareSeconds(prefix: String) = intPreferencesKey("${prefix}prepare_seconds")
-
-  fun keyCountdownSeconds(prefix: String) = intPreferencesKey("${prefix}countdown_seconds")
-
-  fun keyHalfWay(prefix: String) = booleanPreferencesKey("${prefix}half_way")
-
-  fun keyCountdownEnabled(prefix: String) = booleanPreferencesKey("${prefix}countdown_enabled")
-
-  fun keyVibration(prefix: String) = booleanPreferencesKey("${prefix}vibration")
-
-  fun keySound(prefix: String) = booleanPreferencesKey("${prefix}sound")
-
   /** Reads a configuration, clamping stored values so bad data cannot crash the app. */
   fun read(
     preferences: Preferences,
     prefix: String,
   ): TimerConfig {
     val defaults = TimerConfig()
+    val keys = PrefKeys(prefix)
     return TimerConfig(
-      rounds = (preferences[keyRounds(prefix)] ?: defaults.rounds).coerceIn(1, MAX_ROUNDS),
+      rounds = (preferences[keys.rounds] ?: defaults.rounds).coerceIn(1, MAX_ROUNDS),
       workMillis =
-        (preferences[keyWorkSeconds(prefix)] ?: wholeSeconds(defaults.workMillis))
+        (preferences[keys.workSeconds] ?: wholeSeconds(defaults.workMillis))
           .coerceIn(1, MAX_PHASE_SECONDS) * 1_000L,
       restMillis =
-        (preferences[keyRestSeconds(prefix)] ?: wholeSeconds(defaults.restMillis))
+        (preferences[keys.restSeconds] ?: wholeSeconds(defaults.restMillis))
           .coerceIn(0, MAX_PHASE_SECONDS) * 1_000L,
       prepareMillis =
-        (preferences[keyPrepareSeconds(prefix)] ?: wholeSeconds(defaults.prepareMillis))
+        (preferences[keys.prepareSeconds] ?: wholeSeconds(defaults.prepareMillis))
           .coerceIn(0, MAX_PHASE_SECONDS) * 1_000L,
       countdownSeconds =
-        (preferences[keyCountdownSeconds(prefix)] ?: defaults.countdownSeconds)
+        (preferences[keys.countdownSeconds] ?: defaults.countdownSeconds)
           .coerceIn(0, MAX_COUNTDOWN_SECONDS),
-      halfWayEnabled = preferences[keyHalfWay(prefix)] ?: defaults.halfWayEnabled,
-      countdownEnabled = preferences[keyCountdownEnabled(prefix)] ?: defaults.countdownEnabled,
-      vibrationEnabled = preferences[keyVibration(prefix)] ?: defaults.vibrationEnabled,
-      soundEnabled = preferences[keySound(prefix)] ?: defaults.soundEnabled,
+      halfWayEnabled = preferences[keys.halfWay] ?: defaults.halfWayEnabled,
+      countdownEnabled = preferences[keys.countdownEnabled] ?: defaults.countdownEnabled,
+      vibrationEnabled = preferences[keys.vibration] ?: defaults.vibrationEnabled,
+      soundEnabled = preferences[keys.sound] ?: defaults.soundEnabled,
     )
   }
 
@@ -69,15 +56,16 @@ object ConfigPreferences {
     prefix: String,
     config: TimerConfig,
   ) {
-    preferences[keyRounds(prefix)] = config.rounds
-    preferences[keyWorkSeconds(prefix)] = wholeSeconds(config.workMillis)
-    preferences[keyRestSeconds(prefix)] = wholeSeconds(config.restMillis)
-    preferences[keyPrepareSeconds(prefix)] = wholeSeconds(config.prepareMillis)
-    preferences[keyCountdownSeconds(prefix)] = config.countdownSeconds
-    preferences[keyHalfWay(prefix)] = config.halfWayEnabled
-    preferences[keyCountdownEnabled(prefix)] = config.countdownEnabled
-    preferences[keyVibration(prefix)] = config.vibrationEnabled
-    preferences[keySound(prefix)] = config.soundEnabled
+    val keys = PrefKeys(prefix)
+    preferences[keys.rounds] = config.rounds
+    preferences[keys.workSeconds] = wholeSeconds(config.workMillis)
+    preferences[keys.restSeconds] = wholeSeconds(config.restMillis)
+    preferences[keys.prepareSeconds] = wholeSeconds(config.prepareMillis)
+    preferences[keys.countdownSeconds] = config.countdownSeconds
+    preferences[keys.halfWay] = config.halfWayEnabled
+    preferences[keys.countdownEnabled] = config.countdownEnabled
+    preferences[keys.vibration] = config.vibrationEnabled
+    preferences[keys.sound] = config.soundEnabled
   }
 
   /** Removes every field written under [prefix]. */
@@ -85,19 +73,33 @@ object ConfigPreferences {
     preferences: MutablePreferences,
     prefix: String,
   ) {
-    keys(prefix).forEach { preferences.remove(it) }
+    PrefKeys(prefix).all.forEach { preferences.remove(it) }
   }
 
-  private fun keys(prefix: String) =
-    listOf(
-      keyRounds(prefix),
-      keyWorkSeconds(prefix),
-      keyRestSeconds(prefix),
-      keyPrepareSeconds(prefix),
-      keyCountdownSeconds(prefix),
-      keyHalfWay(prefix),
-      keyCountdownEnabled(prefix),
-      keyVibration(prefix),
-      keySound(prefix),
-    )
+  private class PrefKeys(
+    prefix: String,
+  ) {
+    val rounds = keyRounds(prefix)
+    val workSeconds = keyWorkSeconds(prefix)
+    val restSeconds = intPreferencesKey("${prefix}rest_seconds")
+    val prepareSeconds = intPreferencesKey("${prefix}prepare_seconds")
+    val countdownSeconds = intPreferencesKey("${prefix}countdown_seconds")
+    val halfWay = booleanPreferencesKey("${prefix}half_way")
+    val countdownEnabled = booleanPreferencesKey("${prefix}countdown_enabled")
+    val vibration = booleanPreferencesKey("${prefix}vibration")
+    val sound = booleanPreferencesKey("${prefix}sound")
+
+    val all =
+      listOf(
+        rounds,
+        workSeconds,
+        restSeconds,
+        prepareSeconds,
+        countdownSeconds,
+        halfWay,
+        countdownEnabled,
+        vibration,
+        sound,
+      )
+  }
 }

@@ -103,7 +103,11 @@ fun EditTrainingScreen(
         onBack()
       },
       modifier = Modifier.fillMaxWidth().height(52.dp),
-      colors = ButtonDefaults.buttonColors(containerColor = AccentGold, contentColor = MaterialTheme.colorScheme.onPrimary),
+      colors =
+        ButtonDefaults.buttonColors(
+          containerColor = AccentGold,
+          contentColor = MaterialTheme.colorScheme.onPrimary,
+        ),
     ) {
       Text(stringResource(R.string.action_save_changes), fontWeight = FontWeight.Bold, letterSpacing = 1.sp)
     }

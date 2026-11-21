@@ -77,7 +77,12 @@ class PresetsViewModel(
   }
 
   companion object {
-    fun factory(): ViewModelProvider.Factory = viewModelFactory { initializer { PresetsViewModel(AppGraph.settings, AppGraph.timer) } }
+    fun factory(): ViewModelProvider.Factory =
+      viewModelFactory {
+        initializer {
+          PresetsViewModel(AppGraph.settings, AppGraph.timer)
+        }
+      }
   }
 }
 

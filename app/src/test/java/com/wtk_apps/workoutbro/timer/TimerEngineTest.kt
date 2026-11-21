@@ -18,15 +18,13 @@ class TimerEngineTest {
     workMillis: Long = 10_000L,
     restMillis: Long = 5_000L,
     prepareMillis: Long = 0L,
-    halfWayEnabled: Boolean = true,
-    countdownEnabled: Boolean = true,
   ) = TimerConfig(
     rounds = rounds,
     workMillis = workMillis,
     restMillis = restMillis,
     prepareMillis = prepareMillis,
-    halfWayEnabled = halfWayEnabled,
-    countdownEnabled = countdownEnabled,
+    halfWayEnabled = true,
+    countdownEnabled = true,
     countdownSeconds = 3,
     vibrationEnabled = true,
   )

@@ -32,23 +32,15 @@ Read it before writing code. This file only records what is specific to this pro
 
 ## Known debt (do not fix unless the task touches it)
 
-- `AppGraph` still holds `SettingsRepository`, and the settings, trainings and edit
-  screens read it directly. The timer already goes through `TimerViewModel`; the
-  remaining screens need the same seam so the graph stays at the edge.
-- The detekt baseline hides 53 pre-existing findings. Do not add entries to it; fix
-  the code instead.
 - Instrumented tests require a device that allows installation; on MIUI this needs
   "Install via USB" enabled in developer options.
 
-Fixed and removed from this list: `TimerController` now takes an injected clock and has
-tests; configuration mapping lives in `ConfigPreferences`; duration conversion lives in
-`Duration.kt`; cue behaviour lives in `cuePlan` with tests; user-facing text lives in
-`strings.xml`; screens are split into topic-sized files; CI runs the same check as the
-local command.
-
-Fixed and removed from this list: `TimerController` now takes an injected clock and has
-tests; configuration mapping lives in `ConfigPreferences`; duration conversion lives in
-`Duration.kt`; cue behaviour lives in `cuePlan` with tests.
+Fixed and removed from this list: `TimerController` now takes an injected clock,
+serializes state transitions, and has tests; configuration mapping lives in
+`ConfigPreferences`; duration conversion lives in `DurationParts.kt`; cue behaviour lives
+in `cuePlan` with tests; user-facing text lives in `strings.xml`; screens go through
+`TimerViewModel`, `SettingsViewModel`, and `PresetsViewModel` and are split into
+topic-sized files; the detekt baseline has been eliminated (zero issues).
 
 ## Boundaries
 

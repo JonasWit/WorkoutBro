@@ -27,18 +27,24 @@ sealed interface CueStep {
  */
 fun cuePlan(cue: TimerCue): List<CueStep> =
   when (cue) {
-    TimerCue.PREPARE_START -> listOf(CueStep.Sound(CueSound.BEEP), CueStep.Vibrate(120L))
-    TimerCue.WORK_START -> listOf(CueStep.Sound(CueSound.GONG), CueStep.Vibrate(400L))
-    TimerCue.WORK_END -> listOf(CueStep.Sound(CueSound.GONG), CueStep.Vibrate(400L))
-    TimerCue.HALF_WAY -> listOf(CueStep.Sound(CueSound.BEEP), CueStep.Vibrate(120L))
-    TimerCue.COUNTDOWN -> listOf(CueStep.Sound(CueSound.BEEP), CueStep.Vibrate(80L))
+    TimerCue.PREPARE_START -> listOf(CueStep.Sound(CueSound.BEEP), CueStep.Vibrate(MEDIUM_VIBRATE_MS))
+    TimerCue.WORK_START -> listOf(CueStep.Sound(CueSound.GONG), CueStep.Vibrate(LONG_VIBRATE_MS))
+    TimerCue.WORK_END -> listOf(CueStep.Sound(CueSound.GONG), CueStep.Vibrate(LONG_VIBRATE_MS))
+    TimerCue.HALF_WAY -> listOf(CueStep.Sound(CueSound.BEEP), CueStep.Vibrate(MEDIUM_VIBRATE_MS))
+    TimerCue.COUNTDOWN -> listOf(CueStep.Sound(CueSound.BEEP), CueStep.Vibrate(SHORT_VIBRATE_MS))
     TimerCue.FINISHED ->
       listOf(
-        CueStep.Vibrate(700L),
+        CueStep.Vibrate(FINISH_VIBRATE_MS),
         CueStep.Sound(CueSound.GONG),
-        CueStep.Wait(700L),
+        CueStep.Wait(FINISH_GONG_GAP_MS),
         CueStep.Sound(CueSound.GONG),
-        CueStep.Wait(700L),
+        CueStep.Wait(FINISH_GONG_GAP_MS),
         CueStep.Sound(CueSound.GONG),
       )
   }
+
+private const val SHORT_VIBRATE_MS = 80L
+private const val MEDIUM_VIBRATE_MS = 120L
+private const val LONG_VIBRATE_MS = 400L
+private const val FINISH_VIBRATE_MS = 700L
+private const val FINISH_GONG_GAP_MS = 700L

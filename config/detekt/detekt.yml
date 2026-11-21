@@ -5,8 +5,7 @@
 #   allows it instead of forcing a rename of the whole application id;
 # - Compose composables are PascalCase by convention, so naming and magic-number
 #   checks ignore @Composable functions;
-# - existing findings are captured in app/detekt-baseline.xml. New code is checked
-#   from zero: do not add entries to the baseline, fix the code.
+# - zero baseline: all code is checked from zero issues.
 
 build:
   maxIssues: 0

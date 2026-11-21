@@ -30,11 +30,13 @@ object AppGraph {
       timer =
         TimerController(
           cuePlayer = AndroidCuePlayer(context),
-          clock = MonotonicClock { System.nanoTime() / 1_000_000L },
+          clock = MonotonicClock { System.nanoTime() / NANOS_PER_MILLI },
           scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
         ),
     )
   }
+
+  private const val NANOS_PER_MILLI = 1_000_000L
 
   internal fun init(
     settings: SettingsRepository,

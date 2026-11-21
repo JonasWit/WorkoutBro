@@ -125,15 +125,13 @@ class AndroidCuePlayer(
     durationMs: Long,
     config: TimerConfig,
   ) {
-    if (!config.vibrationEnabled) return
-    val v = vibrator ?: return
-    if (!v.hasVibrator()) return
+    val activeVibrator = vibrator?.takeIf { config.vibrationEnabled && it.hasVibrator() } ?: return
     runCatching {
       if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        v.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
+        activeVibrator.vibrate(VibrationEffect.createOneShot(durationMs, VibrationEffect.DEFAULT_AMPLITUDE))
       } else {
         @Suppress("DEPRECATION")
-        v.vibrate(durationMs)
+        activeVibrator.vibrate(durationMs)
       }
     }
   }

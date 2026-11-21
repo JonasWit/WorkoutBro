@@ -30,6 +30,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.ShaderBrush
+import androidx.compose.ui.graphics.drawscope.DrawScope
 
 /**
  * Natural-looking fire drawn with an AGSL fragment shader (Android 13+). On
@@ -182,53 +183,69 @@ private fun ProceduralFlameBackground(color: Color) {
       blendMode = BlendMode.Plus,
     )
 
-    val flameCount = 12
-    for (i in 0 until flameCount) {
-      val base = (i + 0.5f) / flameCount + (hash(i * 5.1f) - 0.5f) * 0.05f
-      val speed = 0.8f + hash(i * 1.7f) * 1.4f
-      val phase = hash(i * 9.3f) * 2f * Math.PI.toFloat()
-      val angle = clock * speed + phase
-      val flick = 0.55f + 0.45f * kotlin.math.sin(angle)
-      val flameHeight = h * (0.16f + 0.18f * hash(i * 3.3f)) * (0.75f + 0.5f * flick)
-      val flameWidth = w * (0.10f + 0.06f * hash(i * 2.9f))
-      val lean = kotlin.math.sin(angle * 0.7f) * w * 0.03f
-      val x = w * base
-      val alpha = 0.10f + 0.16f * flick
-      val top = h - flameHeight
-      path.reset()
-      path.moveTo(x - flameWidth / 2f, h)
-      path.cubicTo(
-        x - flameWidth * 0.45f,
-        h - flameHeight * 0.35f,
-        x - flameWidth * 0.2f + lean * 0.5f,
-        top + flameHeight * 0.3f,
-        x + lean,
-        top,
-      )
-      path.cubicTo(
-        x + flameWidth * 0.2f + lean * 0.5f,
-        top + flameHeight * 0.3f,
-        x + flameWidth * 0.45f,
-        h - flameHeight * 0.35f,
-        x + flameWidth / 2f,
-        h,
-      )
-      path.close()
-      drawPath(
-        path = path,
-        brush =
-          Brush.verticalGradient(
-            colors = listOf(Color.Transparent, color.copy(alpha = alpha * 0.55f), color.copy(alpha = alpha)),
-            startY = top,
-            endY = h,
-          ),
-        blendMode = BlendMode.Plus,
-      )
+    repeat(FLAME_COUNT) { index ->
+      drawFlameTongue(index = index, clock = clock, color = color, path = path)
     }
   }
 }
 
+private const val FLAME_COUNT = 12
+private const val HASH_MULTIPLIER = 43758.5453f
+private const val TWO_PI = (2.0 * Math.PI).toFloat()
+
+@Suppress("MagicNumber")
+private fun DrawScope.drawFlameTongue(
+  index: Int,
+  clock: Float,
+  color: Color,
+  path: Path,
+) {
+  val w = size.width
+  val h = size.height
+  val base = (index + 0.5f) / FLAME_COUNT + (hash(index * 5.1f) - 0.5f) * 0.05f
+  val speed = 0.8f + hash(index * 1.7f) * 1.4f
+  val phase = hash(index * 9.3f) * TWO_PI
+  val angle = clock * speed + phase
+  val flick = 0.55f + 0.45f * kotlin.math.sin(angle)
+  val flameHeight = h * (0.16f + 0.18f * hash(index * 3.3f)) * (0.75f + 0.5f * flick)
+  val flameWidth = w * (0.10f + 0.06f * hash(index * 2.9f))
+  val lean = kotlin.math.sin(angle * 0.7f) * w * 0.03f
+  val x = w * base
+  val alpha = 0.10f + 0.16f * flick
+  val top = h - flameHeight
+
+  path.reset()
+  path.moveTo(x - flameWidth / 2f, h)
+  path.cubicTo(
+    x - flameWidth * 0.45f,
+    h - flameHeight * 0.35f,
+    x - flameWidth * 0.2f + lean * 0.5f,
+    top + flameHeight * 0.3f,
+    x + lean,
+    top,
+  )
+  path.cubicTo(
+    x + flameWidth * 0.2f + lean * 0.5f,
+    top + flameHeight * 0.3f,
+    x + flameWidth * 0.45f,
+    h - flameHeight * 0.35f,
+    x + flameWidth / 2f,
+    h,
+  )
+  path.close()
+  drawPath(
+    path = path,
+    brush =
+      Brush.verticalGradient(
+        colors = listOf(Color.Transparent, color.copy(alpha = alpha * 0.55f), color.copy(alpha = alpha)),
+        startY = top,
+        endY = h,
+      ),
+    blendMode = BlendMode.Plus,
+  )
+}
+
 private fun hash(n: Float): Float {
-  val x = kotlin.math.sin(n) * 43758.5453f
+  val x = kotlin.math.sin(n) * HASH_MULTIPLIER
   return x - kotlin.math.floor(x)
 }

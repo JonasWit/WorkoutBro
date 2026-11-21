@@ -34,13 +34,14 @@ android {
     applicationId = "com.wtk_apps.workoutbro"
     minSdk = 24
     targetSdk = 36
-    versionCode = 16
-    versionName = "2.2.6"
+    versionCode = 17
+    versionName = "2.2.7"
   }
 
   buildTypes {
     release {
-      isMinifyEnabled = false
+      isMinifyEnabled = true
+      isShrinkResources = true
       if (keystorePropertiesFile.exists()) {
         signingConfig = signingConfigs.getByName("release")
       }
@@ -78,7 +79,6 @@ kotlin {
 detekt {
   buildUponDefaultConfig = true
   config.setFrom(rootProject.file("config/detekt/detekt.yml"))
-  baseline = file("detekt-baseline.xml")
 }
 
 // Fast loop: unit tests only. Lint, detekt and ktlint run on check before a commit.
@@ -95,7 +95,6 @@ tasks.named("check") {
 dependencies {
   val composeBom = platform(libs.androidx.compose.bom)
   implementation(composeBom)
-  androidTestImplementation(composeBom)
 
   // Core Android dependencies
   implementation(libs.androidx.core.ktx)
@@ -114,8 +113,6 @@ dependencies {
   implementation(libs.androidx.compose.material3)
   // Tooling
   debugImplementation(libs.androidx.compose.ui.tooling)
-  // Instrumented tests
-  androidTestImplementation(libs.androidx.compose.ui.test.junit4)
   debugImplementation(libs.androidx.compose.ui.test.manifest)
 
   // Local tests: jUnit, coroutines, Android runner
@@ -127,14 +124,7 @@ dependencies {
   testImplementation(libs.androidx.test.ext.junit)
   testImplementation(libs.kotlinx.coroutines.test)
 
-  // Instrumented tests: jUnit rules and runners
-  androidTestImplementation(libs.androidx.test.core)
-  androidTestImplementation(libs.androidx.test.ext.junit)
-  androidTestImplementation(libs.androidx.test.runner)
-  androidTestImplementation(libs.androidx.test.espresso.core)
-
   // Navigation
   implementation(libs.androidx.navigation3.ui)
   implementation(libs.androidx.navigation3.runtime)
-  implementation(libs.androidx.lifecycle.viewmodel.navigation3)
 }
