@@ -134,6 +134,55 @@ class TimerControllerTest {
     assertEquals(7_000L, state.config.workMillis)
   }
 
+  @Test
+  fun resetDuringTickCue_isNotOverwrittenByStaleTickState() {
+    lateinit var reentrantController: TimerController
+    val cuePlayer =
+      object : CuePlayer {
+        override fun play(
+          cue: TimerCue,
+          config: TimerConfig,
+        ) {
+          if (cue == TimerCue.HALF_WAY) reentrantController.reset()
+        }
+      }
+    reentrantController =
+      TimerController(cuePlayer = cuePlayer, clock = clock, scope = scope, tickMillis = 100L)
+    reentrantController.configure(
+      TimerConfig(rounds = 1, workMillis = 10_000L, restMillis = 0L, prepareMillis = 0L),
+    )
+
+    reentrantController.toggle()
+    advance(5_000L)
+
+    assertEquals(TimerPhase.IDLE, reentrantController.state.value.phase)
+    assertFalse(reentrantController.state.value.running)
+  }
+
+  @Test
+  fun adjustDuringTickCue_isNotLostWhenTickCompletes() {
+    lateinit var reentrantController: TimerController
+    val cuePlayer =
+      object : CuePlayer {
+        override fun play(
+          cue: TimerCue,
+          config: TimerConfig,
+        ) {
+          if (cue == TimerCue.HALF_WAY) reentrantController.adjust(15_000L)
+        }
+      }
+    reentrantController =
+      TimerController(cuePlayer = cuePlayer, clock = clock, scope = scope, tickMillis = 100L)
+    reentrantController.configure(
+      TimerConfig(rounds = 1, workMillis = 10_000L, restMillis = 0L, prepareMillis = 0L),
+    )
+
+    reentrantController.toggle()
+    advance(5_000L)
+
+    assertEquals(20_000L, reentrantController.state.value.remainingMillis)
+  }
+
   private class RecordingCuePlayer : CuePlayer {
     val cues = mutableListOf<TimerCue>()
 

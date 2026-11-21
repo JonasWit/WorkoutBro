@@ -1,5 +1,6 @@
 package com.wtk_apps.workoutbro.service
 
+import android.app.Application
 import android.app.Notification
 import android.app.NotificationManager
 import android.content.Context
@@ -8,7 +9,17 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.wtk_apps.workoutbro.AppGraph
 import com.wtk_apps.workoutbro.R
+import com.wtk_apps.workoutbro.data.settingsRepository
+import com.wtk_apps.workoutbro.timer.CuePlayer
+import com.wtk_apps.workoutbro.timer.MonotonicClock
 import com.wtk_apps.workoutbro.timer.TimerConfig
+import com.wtk_apps.workoutbro.timer.TimerController
+import com.wtk_apps.workoutbro.timer.TimerCue
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.TestCoroutineScheduler
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -26,15 +37,30 @@ import org.robolectric.shadows.ShadowNotificationManager
  * Verifies the foreground timer service lifecycle, notification throttling and string
  * formatting without a physical device.
  */
+@OptIn(ExperimentalCoroutinesApi::class)
 @RunWith(AndroidJUnit4::class)
-@Config(sdk = [34], shadows = [CountingNotificationManagerShadow::class])
+@Config(sdk = [34], application = Application::class, shadows = [CountingNotificationManagerShadow::class])
 class TimerServiceTest {
   private val context: Context = ApplicationProvider.getApplicationContext()
+  private lateinit var scheduler: TestCoroutineScheduler
 
   @Before
   fun setUp() {
     CountingNotificationManagerShadow.notifyCalls = 0
-    AppGraph.timer.reset()
+    scheduler = TestCoroutineScheduler()
+    val testController =
+      TimerController(
+        cuePlayer =
+          object : CuePlayer {
+            override fun play(
+              cue: TimerCue,
+              config: TimerConfig,
+            ) = Unit
+          },
+        clock = MonotonicClock { scheduler.currentTime },
+        scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(scheduler)),
+      )
+    AppGraph.init(settingsRepository(context), testController)
   }
 
   @After

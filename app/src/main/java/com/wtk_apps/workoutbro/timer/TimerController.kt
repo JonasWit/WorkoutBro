@@ -22,6 +22,7 @@ class TimerController(
   private val scope: CoroutineScope,
   private val tickMillis: Long = DEFAULT_TICK_MILLIS,
 ) {
+  private val lock = Any()
   private val _state = MutableStateFlow(TimerEngine.initialState(TimerConfig()))
 
   /** Observable timer state for the UI and the foreground notification. */
@@ -32,51 +33,64 @@ class TimerController(
 
   /** Replaces the configuration, resetting the session unless one is running. */
   fun configure(config: TimerConfig) {
-    _state.value =
-      if (_state.value.running) _state.value.copy(config = config) else TimerEngine.reset(config)
-    syncLoop()
+    synchronized(lock) {
+      _state.value =
+        if (_state.value.running) _state.value.copy(config = config) else TimerEngine.reset(config)
+      syncLoopLocked()
+    }
   }
 
-  fun toggle() = apply(TimerEngine.toggle(_state.value))
+  fun toggle() = apply { TimerEngine.toggle(it) }
 
-  fun reset() = apply(TimerTransition(TimerEngine.reset(_state.value.config)))
+  fun reset() = apply { TimerTransition(TimerEngine.reset(it.config)) }
 
-  fun skip() = apply(TimerEngine.skip(_state.value))
+  fun skip() = apply { TimerEngine.skip(it) }
 
   /** Adds [deltaMillis] to the current phase (used by the +/- buttons). */
   fun adjust(deltaMillis: Long) {
-    _state.value = TimerEngine.adjustRemaining(_state.value, deltaMillis)
+    synchronized(lock) {
+      _state.value = TimerEngine.adjustRemaining(_state.value, deltaMillis)
+    }
   }
 
-  private fun apply(transition: TimerTransition) {
-    transition.cues.forEach { cuePlayer.play(it, _state.value.config) }
-    _state.value = transition.state
-    syncLoop()
+  private fun apply(transform: (TimerState) -> TimerTransition) {
+    val (cues, config) =
+      synchronized(lock) {
+        val transition = transform(_state.value)
+        _state.value = transition.state
+        syncLoopLocked()
+        transition.cues to transition.state.config
+      }
+    cues.forEach { cuePlayer.play(it, config) }
   }
 
-  private fun syncLoop() {
-    if (_state.value.running) startLoop() else stopLoop()
+  private fun syncLoopLocked() {
+    if (_state.value.running) startLoopLocked() else stopLoopLocked()
   }
 
-  private fun startLoop() {
+  private fun startLoopLocked() {
     if (loopJob?.isActive == true) return
     lastTickMillis = clock.nowMillis()
     loopJob =
       scope.launch {
         while (isActive) {
           delay(tickMillis)
-          val now = clock.nowMillis()
-          val deltaMillis = now - lastTickMillis
-          lastTickMillis = now
-          val transition = TimerEngine.tick(_state.value, deltaMillis)
-          transition.cues.forEach { cuePlayer.play(it, _state.value.config) }
-          _state.value = transition.state
-          if (!transition.state.running) break
+          val (cues, config, running) =
+            synchronized(lock) {
+              val now = clock.nowMillis()
+              val deltaMillis = (now - lastTickMillis).coerceAtLeast(0L)
+              lastTickMillis = now
+              val transition = TimerEngine.tick(_state.value, deltaMillis)
+              _state.value = transition.state
+              Triple(transition.cues, transition.state.config, transition.state.running)
+            }
+          cues.forEach { cuePlayer.play(it, config) }
+          if (!running) break
         }
       }
   }
 
-  private fun stopLoop() {
+  private fun stopLoopLocked() {
     loopJob?.cancel()
     loopJob = null
   }

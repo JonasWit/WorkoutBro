@@ -25,13 +25,23 @@ object AppGraph {
     private set
 
   fun init(context: Application) {
-    settings = settingsRepository(context)
-    timer =
-      TimerController(
-        cuePlayer = AndroidCuePlayer(context),
-        clock = MonotonicClock { System.nanoTime() / 1_000_000L },
-        scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
-      )
+    init(
+      settings = settingsRepository(context),
+      timer =
+        TimerController(
+          cuePlayer = AndroidCuePlayer(context),
+          clock = MonotonicClock { System.nanoTime() / 1_000_000L },
+          scope = CoroutineScope(SupervisorJob() + Dispatchers.Default),
+        ),
+    )
+  }
+
+  internal fun init(
+    settings: SettingsRepository,
+    timer: TimerController,
+  ) {
+    this.settings = settings
+    this.timer = timer
   }
 }
 
