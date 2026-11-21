@@ -26,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -51,6 +52,9 @@ import com.wtk_apps.workoutbro.timer.formatMillis
 import com.wtk_apps.workoutbro.timer.totalSessionMillis
 import com.wtk_apps.workoutbro.timer.totalWorkMillis
 import com.wtk_apps.workoutbro.ui.PresetsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @Composable
 internal fun DialogAction(
@@ -234,37 +238,46 @@ internal fun BackupSection(
   viewModel: PresetsViewModel,
 ) {
   val context = LocalContext.current
+  val scope = rememberCoroutineScope()
   var message by remember { mutableStateOf<BackupMessage?>(null) }
 
   val exportLauncher =
     rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
       if (uri != null) {
-        val written =
-          runCatching {
-            context.contentResolver.openOutputStream(uri)?.use { stream ->
-              stream.write(PresetsBackup.toJson(presets).toByteArray())
-            } ?: error("no output stream")
-          }
-        message = if (written.isSuccess) BackupMessage.Exported(presets.size) else BackupMessage.ExportFailed
+        val snapshot = presets
+        scope.launch {
+          val written =
+            withContext(Dispatchers.IO) {
+              runCatching {
+                context.contentResolver.openOutputStream(uri)?.use { stream ->
+                  stream.write(PresetsBackup.toJson(snapshot).toByteArray())
+                } ?: error("no output stream")
+              }
+            }
+          message = if (written.isSuccess) BackupMessage.Exported(snapshot.size) else BackupMessage.ExportFailed
+        }
       }
     }
 
   val importLauncher =
     rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
       if (uri != null) {
-        val text =
-          runCatching {
-            context.contentResolver
-              .openInputStream(uri)
-              ?.bufferedReader()
-              ?.use { it.readText() }
-          }.getOrNull()
-        val parsed = text?.let { PresetsBackup.fromJson(it) }
-        if (parsed == null || parsed.isFailure) {
-          message = BackupMessage.ImportFailed
-        } else {
-          viewModel.importPresets(parsed.getOrThrow()) { result ->
-            message = BackupMessage.Imported(added = result.added, skipped = result.skipped)
+        scope.launch {
+          val parsed =
+            withContext(Dispatchers.IO) {
+              runCatching {
+                context.contentResolver
+                  .openInputStream(uri)
+                  ?.bufferedReader()
+                  ?.use { it.readText() }
+              }.getOrNull()?.let { PresetsBackup.fromJson(it) }
+            }
+          if (parsed == null || parsed.isFailure) {
+            message = BackupMessage.ImportFailed
+          } else {
+            viewModel.importPresets(parsed.getOrThrow()) { result ->
+              message = BackupMessage.Imported(added = result.added, skipped = result.skipped)
+            }
           }
         }
       }
