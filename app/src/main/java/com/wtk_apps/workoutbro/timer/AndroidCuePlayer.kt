@@ -13,6 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * Plays timer cues from bundled raw sounds using [SoundPool] and drives the
@@ -34,7 +35,7 @@ class AndroidCuePlayer(
   private val beepId: Int
   private val gongId: Int
 
-  @Volatile private var loaded = false
+  private val loadedSamples = ConcurrentHashMap.newKeySet<Int>()
 
   private val vibrator: Vibrator? =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -58,7 +59,9 @@ class AndroidCuePlayer(
         .setMaxStreams(MAX_STREAMS)
         .setAudioAttributes(attributes)
         .build()
-    soundPool.setOnLoadCompleteListener { _, _, status -> if (status == 0) loaded = true }
+    soundPool.setOnLoadCompleteListener { _, sampleId, status ->
+      if (status == 0) loadedSamples.add(sampleId)
+    }
     beepId = soundPool.load(appContext, R.raw.beep, 1)
     gongId = soundPool.load(appContext, R.raw.gong, 1)
   }
@@ -107,13 +110,13 @@ class AndroidCuePlayer(
   ) {
     if (!config.soundEnabled) return
     val id = if (kind == CueSound.BEEP) beepId else gongId
-    if (loaded) {
+    if (id in loadedSamples) {
       runCatching { soundPool.play(id, VOLUME, VOLUME, 1, 0, 1f) }
     } else {
       // The very first cue may arrive before SoundPool finished loading; retry once.
       scope.launch {
-        delay(150L)
-        if (loaded) runCatching { soundPool.play(id, VOLUME, VOLUME, 1, 0, 1f) }
+        delay(RETRY_DELAY_MILLIS)
+        if (id in loadedSamples) runCatching { soundPool.play(id, VOLUME, VOLUME, 1, 0, 1f) }
       }
     }
   }
@@ -138,5 +141,6 @@ class AndroidCuePlayer(
   private companion object {
     const val MAX_STREAMS = 4
     const val VOLUME = 1.0f
+    const val RETRY_DELAY_MILLIS = 150L
   }
 }
