@@ -117,10 +117,15 @@ internal fun PresetRow(
     }
     Spacer(Modifier.height(9.dp))
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-      DetailChip("ROUNDS", config.rounds.toString(), AccentGold, Modifier.weight(1f))
-      DetailChip("WORK", formatMillis(config.workMillis), WorkYellow, Modifier.weight(1f))
-      DetailChip("REST", formatMillis(config.restMillis), RestGreen, Modifier.weight(1f))
-      DetailChip("PREP", formatMillis(config.prepareMillis), PrepareBlue, Modifier.weight(1f))
+      DetailChip(stringResource(R.string.label_rounds), config.rounds.toString(), AccentGold, Modifier.weight(1f))
+      DetailChip(stringResource(R.string.label_work), formatMillis(config.workMillis), WorkYellow, Modifier.weight(1f))
+      DetailChip(stringResource(R.string.label_rest), formatMillis(config.restMillis), RestGreen, Modifier.weight(1f))
+      DetailChip(
+        stringResource(R.string.label_prepare),
+        formatMillis(config.prepareMillis),
+        PrepareBlue,
+        Modifier.weight(1f),
+      )
     }
   }
 }

@@ -132,17 +132,19 @@ private fun FireShaderBackground(
   }
 
   val shader = remember { RuntimeShader(FIRE_AGSL) }
+  val brush = remember(shader) { ShaderBrush(shader) }
   val r = color.red
   val g = color.green
   val b = color.blue
 
   Canvas(modifier = Modifier.fillMaxSize()) {
+    if (size.width <= 0f || size.height <= 0f) return@Canvas
     shader.setFloatUniform("uResolution", size.width, size.height)
     shader.setFloatUniform("uTime", fireTime.floatValue)
     shader.setFloatUniform("uColorR", r)
     shader.setFloatUniform("uColorG", g)
     shader.setFloatUniform("uColorB", b)
-    drawRect(brush = ShaderBrush(shader), size = size)
+    drawRect(brush = brush, size = size)
   }
 }
 
@@ -162,13 +164,19 @@ private fun ProceduralFlameBackground(color: Color) {
       label = "flameClock",
     )
 
+  val path = remember { Path() }
   Canvas(modifier = Modifier.fillMaxSize()) {
     val w = size.width
     val h = size.height
 
     // Warm glow along the bottom edge.
     drawRect(
-      brush = Brush.verticalGradient(listOf(Color.Transparent, color.copy(alpha = 0.12f)), startY = h * 0.80f, endY = h),
+      brush =
+        Brush.verticalGradient(
+          listOf(Color.Transparent, color.copy(alpha = 0.12f)),
+          startY = h * 0.80f,
+          endY = h,
+        ),
       topLeft = Offset(0f, h * 0.80f),
       size = Size(w, h * 0.20f),
       blendMode = BlendMode.Plus,
@@ -187,27 +195,25 @@ private fun ProceduralFlameBackground(color: Color) {
       val x = w * base
       val alpha = 0.10f + 0.16f * flick
       val top = h - flameHeight
-      val path =
-        Path().apply {
-          moveTo(x - flameWidth / 2f, h)
-          cubicTo(
-            x - flameWidth * 0.45f,
-            h - flameHeight * 0.35f,
-            x - flameWidth * 0.2f + lean * 0.5f,
-            top + flameHeight * 0.3f,
-            x + lean,
-            top,
-          )
-          cubicTo(
-            x + flameWidth * 0.2f + lean * 0.5f,
-            top + flameHeight * 0.3f,
-            x + flameWidth * 0.45f,
-            h - flameHeight * 0.35f,
-            x + flameWidth / 2f,
-            h,
-          )
-          close()
-        }
+      path.reset()
+      path.moveTo(x - flameWidth / 2f, h)
+      path.cubicTo(
+        x - flameWidth * 0.45f,
+        h - flameHeight * 0.35f,
+        x - flameWidth * 0.2f + lean * 0.5f,
+        top + flameHeight * 0.3f,
+        x + lean,
+        top,
+      )
+      path.cubicTo(
+        x + flameWidth * 0.2f + lean * 0.5f,
+        top + flameHeight * 0.3f,
+        x + flameWidth * 0.45f,
+        h - flameHeight * 0.35f,
+        x + flameWidth / 2f,
+        h,
+      )
+      path.close()
       drawPath(
         path = path,
         brush =

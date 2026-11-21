@@ -51,6 +51,7 @@ fun TrainingsScreen(
   viewModel: PresetsViewModel = viewModel(factory = PresetsViewModel.factory()),
 ) {
   val presets by viewModel.presets.collectAsStateWithLifecycle()
+  val defaultWorkoutName = stringResource(R.string.default_workout_numbered, presets.size + 1)
   var showSaveDialog by remember { mutableStateOf(false) }
   var nameInput by remember { mutableStateOf("") }
   var limitReached by remember { mutableStateOf(false) }
@@ -88,7 +89,7 @@ fun TrainingsScreen(
     Spacer(Modifier.height(16.dp))
     Button(
       onClick = {
-        nameInput = "Workout ${presets.size + 1}"
+        nameInput = defaultWorkoutName
         showSaveDialog = true
       },
       enabled = presets.size < MAX_PRESETS,
@@ -130,7 +131,7 @@ fun TrainingsScreen(
       },
       confirmButton = {
         TextButton(onClick = {
-          val name = nameInput.trim().ifBlank { "Workout ${presets.size + 1}" }
+          val name = nameInput.trim().ifBlank { defaultWorkoutName }
           viewModel.saveCurrent(name) { added -> limitReached = !added }
           showSaveDialog = false
         }) {
@@ -159,14 +160,19 @@ fun TrainingsScreen(
           horizontalAlignment = Alignment.CenterHorizontally,
         ) {
           Text(
-            text = preset?.name ?: "Training",
+            text = preset?.name ?: stringResource(R.string.default_training_title),
             color = TextPrimary,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center,
           )
           Spacer(Modifier.height(18.dp))
-          DialogAction("LOAD", filled = true, accent = AccentGold, modifier = Modifier.fillMaxWidth()) {
+          DialogAction(
+            label = stringResource(R.string.action_load),
+            filled = true,
+            accent = AccentGold,
+            modifier = Modifier.fillMaxWidth(),
+          ) {
             preset?.let {
               viewModel.apply(it)
               onBack()
@@ -174,12 +180,22 @@ fun TrainingsScreen(
             actionsFor = null
           }
           Spacer(Modifier.height(10.dp))
-          DialogAction("EDIT", filled = false, accent = AccentGold, modifier = Modifier.fillMaxWidth()) {
+          DialogAction(
+            label = stringResource(R.string.action_edit),
+            filled = false,
+            accent = AccentGold,
+            modifier = Modifier.fillMaxWidth(),
+          ) {
             actionsFor = null
             onEdit(actionIndex)
           }
           Spacer(Modifier.height(10.dp))
-          DialogAction("DELETE", filled = false, accent = WorkRedOrange, modifier = Modifier.fillMaxWidth()) {
+          DialogAction(
+            label = stringResource(R.string.action_delete),
+            filled = false,
+            accent = WorkRedOrange,
+            modifier = Modifier.fillMaxWidth(),
+          ) {
             actionsFor = null
             pendingDelete = actionIndex
           }
@@ -221,10 +237,20 @@ fun TrainingsScreen(
           )
           Spacer(Modifier.height(18.dp))
           Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            DialogAction("NO", filled = false, accent = TextSecondary, modifier = Modifier.weight(1f)) {
+            DialogAction(
+              label = stringResource(R.string.action_no),
+              filled = false,
+              accent = TextSecondary,
+              modifier = Modifier.weight(1f),
+            ) {
               pendingDelete = null
             }
-            DialogAction("YES", filled = true, accent = WorkRedOrange, modifier = Modifier.weight(1f)) {
+            DialogAction(
+              label = stringResource(R.string.action_yes),
+              filled = true,
+              accent = WorkRedOrange,
+              modifier = Modifier.weight(1f),
+            ) {
               pendingDelete = null
               viewModel.delete(deleteIndex)
             }

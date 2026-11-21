@@ -1,6 +1,8 @@
 package com.wtk_apps.workoutbro.data
 
+import com.wtk_apps.workoutbro.timer.MAX_COUNTDOWN_SECONDS
 import com.wtk_apps.workoutbro.timer.MAX_PHASE_SECONDS
+import com.wtk_apps.workoutbro.timer.MAX_ROUNDS
 import com.wtk_apps.workoutbro.timer.TimerConfig
 import com.wtk_apps.workoutbro.timer.wholeSeconds
 import kotlinx.serialization.Serializable
@@ -86,7 +88,4 @@ object PresetsBackup {
           soundEnabled = sound,
         ),
     )
-
-  private const val MAX_ROUNDS = 99
-  private const val MAX_COUNTDOWN_SECONDS = 10
 }

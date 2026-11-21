@@ -49,6 +49,7 @@ fun EditTrainingScreen(
   viewModel: PresetsViewModel = viewModel(factory = PresetsViewModel.factory()),
 ) {
   val presets by viewModel.presets.collectAsStateWithLifecycle()
+  val fallbackWorkoutName = stringResource(R.string.default_workout_name)
 
   var loaded by remember { mutableStateOf(false) }
   var name by remember { mutableStateOf("") }
@@ -97,7 +98,7 @@ fun EditTrainingScreen(
     Spacer(Modifier.height(24.dp))
     Button(
       onClick = {
-        val finalName = name.trim().ifBlank { preset?.name ?: "Workout" }
+        val finalName = name.trim().ifBlank { preset?.name ?: fallbackWorkoutName }
         viewModel.update(index, finalName, config)
         onBack()
       },

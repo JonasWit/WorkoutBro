@@ -15,6 +15,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.wtk_apps.workoutbro.R
 import com.wtk_apps.workoutbro.theme.TextSecondary
+import com.wtk_apps.workoutbro.timer.MAX_COUNTDOWN_SECONDS
+import com.wtk_apps.workoutbro.timer.MAX_ROUNDS
 import com.wtk_apps.workoutbro.timer.TimerConfig
 import com.wtk_apps.workoutbro.timer.durationParts
 
@@ -35,7 +37,7 @@ internal fun TrainingConfigForm(
   Column(modifier = modifier.fillMaxWidth()) {
     SectionTitle(stringResource(R.string.section_session))
 
-    SingleNumberField(stringResource(R.string.field_rounds), config.rounds, 1..99) {
+    SingleNumberField(stringResource(R.string.field_rounds), config.rounds, 1..MAX_ROUNDS) {
       onConfigChange(config.copy(rounds = it))
     }
 
@@ -65,7 +67,7 @@ internal fun TrainingConfigForm(
 
     Spacer(Modifier.height(16.dp))
     SectionTitle(stringResource(R.string.section_cues))
-    SingleNumberField(stringResource(R.string.field_countdown), config.countdownSeconds, 0..10) {
+    SingleNumberField(stringResource(R.string.field_countdown), config.countdownSeconds, 0..MAX_COUNTDOWN_SECONDS) {
       onConfigChange(config.copy(countdownSeconds = it))
     }
     Toggle(stringResource(R.string.toggle_half_way), config.halfWayEnabled) {

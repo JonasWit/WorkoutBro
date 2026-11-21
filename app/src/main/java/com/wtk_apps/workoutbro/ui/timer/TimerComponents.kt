@@ -98,7 +98,7 @@ internal fun PhaseHeader(
         state.phase == TimerPhase.REST,
     )
     ParamChip(
-      "PREP",
+      stringResource(R.string.label_prepare),
       formatMillis(state.config.prepareMillis),
       PrepareBlue,
       Modifier.weight(1f),

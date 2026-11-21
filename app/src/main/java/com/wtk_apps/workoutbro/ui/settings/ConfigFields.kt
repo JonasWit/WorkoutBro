@@ -219,8 +219,19 @@ internal fun NumberInputDialog(
         )
         Spacer(Modifier.height(18.dp))
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-          FormDialogButton("CANCEL", filled = false, accent = TextSecondary, modifier = Modifier.weight(1f), onClick = onDismiss)
-          FormDialogButton("OK", filled = true, accent = AccentGold, modifier = Modifier.weight(1f)) {
+          FormDialogButton(
+            label = stringResource(R.string.action_cancel_upper),
+            filled = false,
+            accent = TextSecondary,
+            modifier = Modifier.weight(1f),
+            onClick = onDismiss,
+          )
+          FormDialogButton(
+            label = stringResource(R.string.action_ok),
+            filled = true,
+            accent = AccentGold,
+            modifier = Modifier.weight(1f),
+          ) {
             onConfirm((text.toIntOrNull() ?: value).coerceIn(range))
           }
         }

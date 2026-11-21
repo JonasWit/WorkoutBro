@@ -14,6 +14,12 @@ fun formatMillis(millis: Long): String {
  */
 const val MAX_PHASE_SECONDS = 99 * 60 + 59
 
+/** Upper bound on rounds in a single session (kept to two digits). */
+const val MAX_ROUNDS = 99
+
+/** Upper bound on countdown cue seconds before a phase ends. */
+const val MAX_COUNTDOWN_SECONDS = 10
+
 /** One contiguous section of a session, used to draw the progress bar. */
 data class SessionSegment(
   val phase: TimerPhase,

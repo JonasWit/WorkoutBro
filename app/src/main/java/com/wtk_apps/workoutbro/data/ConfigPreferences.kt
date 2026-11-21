@@ -4,7 +4,9 @@ import androidx.datastore.preferences.core.MutablePreferences
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
+import com.wtk_apps.workoutbro.timer.MAX_COUNTDOWN_SECONDS
 import com.wtk_apps.workoutbro.timer.MAX_PHASE_SECONDS
+import com.wtk_apps.workoutbro.timer.MAX_ROUNDS
 import com.wtk_apps.workoutbro.timer.TimerConfig
 import com.wtk_apps.workoutbro.timer.wholeSeconds
 
@@ -98,7 +100,4 @@ object ConfigPreferences {
       keyVibration(prefix),
       keySound(prefix),
     )
-
-  private const val MAX_ROUNDS = 99
-  private const val MAX_COUNTDOWN_SECONDS = 10
 }

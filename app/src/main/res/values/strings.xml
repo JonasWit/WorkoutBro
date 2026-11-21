@@ -13,6 +13,13 @@
   <string name="action_save_changes">SAVE CHANGES</string>
   <string name="action_save_current_workout">SAVE CURRENT WORKOUT</string>
   <string name="action_cancel">Cancel</string>
+  <string name="action_cancel_upper">CANCEL</string>
+  <string name="action_ok">OK</string>
+  <string name="action_load">LOAD</string>
+  <string name="action_edit">EDIT</string>
+  <string name="action_delete">DELETE</string>
+  <string name="action_yes">YES</string>
+  <string name="action_no">NO</string>
   <string name="action_reset">Reset</string>
   <string name="action_skip">Skip</string>
   <string name="action_start">START</string>
@@ -24,6 +31,7 @@
   <string name="label_rounds">ROUNDS</string>
   <string name="label_work">WORK</string>
   <string name="label_rest">REST</string>
+  <string name="label_prepare">PREP</string>
   <string name="label_total">TOTAL</string>
   <string name="label_total_work">TOTAL WORK</string>
   <string name="label_round_progress">ROUND %1$d / %2$d</string>
@@ -33,6 +41,9 @@
 
   <string name="dialog_save_training">Save training</string>
   <string name="dialog_delete_training">Delete training?</string>
+  <string name="default_training_title">Training</string>
+  <string name="default_workout_name">Workout</string>
+  <string name="default_workout_numbered">Workout %1$d</string>
 
   <string name="section_session">Session</string>
   <string name="section_cues">Cues</string>

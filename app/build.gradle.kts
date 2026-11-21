@@ -34,8 +34,8 @@ android {
     applicationId = "com.wtk_apps.workoutbro"
     minSdk = 24
     targetSdk = 36
-    versionCode = 15
-    versionName = "2.2.5"
+    versionCode = 16
+    versionName = "2.2.6"
   }
 
   buildTypes {
